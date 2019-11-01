@@ -23,7 +23,7 @@ redisUrl='http://download.redis.io/releases/redis-4.0.9.tar.gz'
 #判断 wget 是否安装
 if [ $(rpm -qa | grep wget) == "" ];then
 #根据系统类型和版本判断执行命令；暂时不会写
-	yum -y install wget	
+    yum -y install wget	
 fi
 
 wget $redisUrl -O redis.tar.gz
@@ -32,7 +32,7 @@ wget $redisUrl -O redis.tar.gz
 #判断 tar 是否安装
 if [ $(rpm -qa | grep tar) == "" ];then
 #根据系统类型和版本判断执行命令
-	yum -y install tar	
+    yum -y install tar	
 fi
 
 tar -zxvf redis.tar.gz
@@ -59,7 +59,7 @@ num=7
 #配置文件命名拼接字符串
 pre='redis.700'
 after='.conf'
-for(i = 0; i < $num; i++));
+for((i = 1; i <= $num; i++));
 do
 cp redis.conf $pre$i$after
 done
@@ -73,31 +73,32 @@ ip=192.168.2.131
 pythonBin=$(which python)
 
 #python实现配置文件的修改
-#shell中执行python暂时不会；python代码未测试；redis个数for i 循环未传入；ip未传入
-def funChange(oldText, newText, i){
-data = ''
-with open('redis700' + i + '.conf', 'r+') as f:
-  for line in f.readlines():
-    if(line.find('oldText') == 0):
-      line = 'newText'
-    data += line
-with open('redis700' + i + '.conf', 'r+') as f:
-  f.writelines(data)
-}
+#python代码未测试；redis个数for i 循环未传入；ip未传入
+$pythonBin <<-EOF
+def funChange(oldText, newText, i):
+	data = ''
+    with open('redis700' + i + '.conf', 'r+') as f:
+        for line in f.readlines():
+            if(line.find('oldText') == 0):
+                line = 'newText'
+	        data += line
+    with open('redis700' + i + '.conf', 'r+') as f:
+        f.writelines(data)
 
-def funmain(){
-        oldText = ['bind 127.0.0.1', 'daemonize no', 'pidfile', 'cluster-enabled', 'cluster-config-file', 'cluster-node-timeout', 'appendonly yes', 'port 6379']
-        newText = ['bind 192.168.2.131', 'daemonize yes', 'pidfile /var/run/redis_700', 'cluster-enabled yes', 'cluster-config-file nodes_700', 'cluster-node-timeout 15000', 'appendonly yes', 'port 7001']
-        for i in range(1, 8):
-                newText[2] += i + '.pid';
-                newText[4] += i + '.conf';
-                for j in range(0, 8):
-                        funChange(oldText[j], newText[j], i);
-funmain();
+def funmain():
+    oldText = ['bind 127.0.0.1', 'daemonize no', 'pidfile', 'cluster-enabled', 'cluster-config-file', 'cluster-node-timeout', 'appendonly yes', 'port 6379']
+    newText = ['bind 192.168.2.131', 'daemonize yes', 'pidfile /var/run/redis_700', 'cluster-enabled yes', 'cluster-config-file nodes_700', 'cluster-node-timeout 15000', 'appendonly yes', 'port 7001']
+    for i in range(1, 8):
+        newText[2] += i + '.pid'
+        newText[4] += i + '.conf'
+        for j in range(0, 8):
+            funChange(oldText[j], newText[j], i)
+funmain()
+EOF
 
 #启动redis
 cd /opt/redis/redis_cluster/
-for(i = 0; i < $num; i++));
+for((i = 1; i <= $num; i++));
 do
 redis-server $pre$i$after
 done
@@ -114,7 +115,7 @@ gem install redis
 #判断是否安装 curl
 if [ $(rpm -qa | grep curl) == "" ];then
 #根据系统类型和版本判断执行命令；暂时不会写
-	yum -y install curl	
+    yum -y install curl	
 fi
 #安装 rvm；报错：curl: (6) Couldn't resolve host 'get.rvm.io'选择第二条执行
 curl -L get.rvm.io | bash -s stable 
@@ -137,7 +138,7 @@ gem install redis
 #创建redis集群
 str=':700'
 portPre=$ip$str
-for(i = 0; i < $num; i++));
+for((i = 1; i <= $num; i++));
 do
 redis-trib.rb create --replicas 1 $portPre$i
 done
